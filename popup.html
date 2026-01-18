@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Carousell Sorter</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <h1>Carousell Liked Items</h1>
+
+    <div class="controls">
+        <button id="scanButton">Scan Liked Items</button>
+        <div class="control-row">
+            <label for="sortSelect">Sort by:</label>
+            <select id="sortSelect">
+                <option value="price-asc">Price (Low to High)</option>
+                <option value="price-desc">Price (High to Low)</option>
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+            </select>
+        </div>
+        <button id="exportButton" class="secondary-btn" disabled>Export CSV</button>
+    </div>
+
+    <p id="statusMessage"></p>
+    <p id="lastScan" class="meta-text"></p>
+
+    <!-- Sold/Reserved section -->
+    <div id="unavailableSection" class="section hidden">
+        <div class="section-header">
+            <h2>Sold/Reserved Items</h2>
+            <button id="unlikeAllButton" class="danger-btn">Unlike All</button>
+        </div>
+        <p class="section-desc">Click the ❌ to remove items from your likes</p>
+        <ul id="unavailableList"></ul>
+    </div>
+
+    <!-- Available items section -->
+    <div id="availableSection" class="section hidden">
+        <h2>Available Items (<span id="availableCount">0</span>)</h2>
+        <div id="results"></div>
+    </div>
+
+    <script src="logic.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>

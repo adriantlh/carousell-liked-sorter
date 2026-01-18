@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Carousell Liked Item Sorter",
+  "version": "1.0",
+  "description": "Sorts and filters liked items on Carousell.",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": [
+    "*://*.carousell.sg/*",
+    "*://carousell.sg/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.carousell.sg/*", "*://carousell.sg/*"],
+      "js": ["scraperLogic.js", "content.js"]
+    }
+  ]
+}
