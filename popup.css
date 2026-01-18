@@ -27,6 +27,15 @@ h2 {
     margin-bottom: 10px;
 }
 
+.button-row {
+    display: flex;
+    gap: 8px;
+}
+
+.button-row button {
+    flex: 1;
+}
+
 .control-row {
     display: flex;
     align-items: center;

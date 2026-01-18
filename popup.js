@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // DOM elements
     const scanButton = document.getElementById('scanButton');
+    const loadAllButton = document.getElementById('loadAllButton');
     const exportButton = document.getElementById('exportButton');
     const sortSelect = document.getElementById('sortSelect');
     const groupByCategory = document.getElementById('groupByCategory');
@@ -29,50 +30,104 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Scan button click
     scanButton.addEventListener('click', function() {
-        statusMessage.textContent = 'Scanning for liked items...';
-        statusMessage.style.color = 'blue';
-        scanButton.disabled = true;
+        ensureOnLikesPage(function() {
+            statusMessage.textContent = 'Scanning for liked items...';
+            statusMessage.style.color = 'blue';
+            scanButton.disabled = true;
 
-        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
-            if (tabs.length > 0) {
-                currentTabId = tabs[0].id;
-                chrome.tabs.sendMessage(tabs[0].id, { action: "scanLikedItems" }, function(response) {
-                    scanButton.disabled = false;
-
-                    if (chrome.runtime.lastError) {
-                        statusMessage.textContent = 'Error: Could not connect to Carousell page. Make sure you are on a Carousell liked items page and refresh.';
-                        statusMessage.style.color = 'red';
-                        return;
-                    }
-
-                    if (response && response.status === "failed") {
-                        statusMessage.textContent = 'Scanning failed: ' + response.message;
-                        statusMessage.style.color = 'red';
-                        return;
-                    }
-
-                    if (response && response.status === "error") {
-                        statusMessage.textContent = 'Error during scanning: ' + response.error;
-                        statusMessage.style.color = 'red';
-                        return;
-                    }
-
-                    if (response && response.status === "success" && response.data) {
-                        allItems = response.data;
-                        saveData(allItems);
-                        displayAllItems();
-                    } else {
-                        statusMessage.textContent = 'No liked items found on this page.';
-                        statusMessage.style.color = 'orange';
-                    }
-                });
-            } else {
+            chrome.tabs.sendMessage(currentTabId, { action: "scanLikedItems" }, function(response) {
                 scanButton.disabled = false;
-                statusMessage.textContent = 'Error: No active tab found.';
-                statusMessage.style.color = 'red';
-            }
+
+                if (chrome.runtime.lastError) {
+                    statusMessage.textContent = 'Error: Could not connect to Carousell page. Make sure you are on a Carousell liked items page and refresh.';
+                    statusMessage.style.color = 'red';
+                    return;
+                }
+
+                if (response && response.status === "failed") {
+                    statusMessage.textContent = 'Scanning failed: ' + response.message;
+                    statusMessage.style.color = 'red';
+                    return;
+                }
+
+                if (response && response.status === "error") {
+                    statusMessage.textContent = 'Error during scanning: ' + response.error;
+                    statusMessage.style.color = 'red';
+                    return;
+                }
+
+                if (response && response.status === "success" && response.data) {
+                    allItems = response.data;
+                    saveData(allItems);
+                    displayAllItems();
+                } else {
+                    statusMessage.textContent = 'No liked items found on this page.';
+                    statusMessage.style.color = 'orange';
+                }
+            });
         });
     });
+
+    // Load All button click
+    loadAllButton.addEventListener('click', function() {
+        ensureOnLikesPage(function() {
+            statusMessage.textContent = 'Loading all items... (clicking "Load more")';
+            statusMessage.style.color = 'blue';
+            loadAllButton.disabled = true;
+            loadAllButton.textContent = 'Loading...';
+
+            chrome.tabs.sendMessage(currentTabId, { action: "loadMore" }, function(response) {
+                if (chrome.runtime.lastError) {
+                    statusMessage.textContent = 'Error: Could not connect to page. Refresh and try again.';
+                    statusMessage.style.color = 'red';
+                    loadAllButton.disabled = false;
+                    loadAllButton.textContent = 'Load All';
+                }
+            });
+        });
+    });
+
+    // Listen for loadMore completion
+    chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+        if (request.action === "loadMoreComplete") {
+            loadAllButton.disabled = false;
+            loadAllButton.textContent = 'Load All';
+            statusMessage.textContent = `Finished loading (${request.clicks} clicks). Click "Scan" to refresh the list.`;
+            statusMessage.style.color = 'green';
+        }
+    });
+
+    // Ensure we're on the likes page, redirect if not
+    function ensureOnLikesPage(callback) {
+        chrome.tabs.query({ active: true, currentWindow: true }, function(tabs) {
+            if (tabs.length === 0) {
+                statusMessage.textContent = 'Error: No active tab found.';
+                statusMessage.style.color = 'red';
+                return;
+            }
+
+            currentTabId = tabs[0].id;
+            const currentUrl = tabs[0].url || '';
+
+            if (currentUrl.includes('carousell.sg/likes')) {
+                // Already on likes page
+                callback();
+            } else if (currentUrl.includes('carousell.sg')) {
+                // On Carousell but not likes page - redirect
+                statusMessage.textContent = 'Redirecting to likes page...';
+                statusMessage.style.color = 'blue';
+                chrome.tabs.sendMessage(currentTabId, { action: "goToLikes" }, function(response) {
+                    statusMessage.textContent = 'Redirected. Please click again after the page loads.';
+                    statusMessage.style.color = 'orange';
+                });
+            } else {
+                // Not on Carousell at all
+                statusMessage.textContent = 'Please go to carousell.sg first, then click again.';
+                statusMessage.style.color = 'orange';
+                chrome.tabs.update(currentTabId, { url: 'https://www.carousell.sg/likes/' });
+            }
+        });
+    }
 
     // Sort change
     sortSelect.addEventListener('change', function() {

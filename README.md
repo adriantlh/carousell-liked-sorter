@@ -4,6 +4,8 @@ A Chrome extension to manage and organize your liked items on Carousell.
 
 ## Features
 
+- **Auto-navigate** - automatically redirects to your likes page if not already there
+- **Load All** - automatically clicks "Load more" at random intervals to load all your liked items
 - **Scan liked items** from your Carousell likes page
 - **Filter sold/reserved items** - see them separately and quickly unlike them
 - **Sort items** by price (low/high) or name (A-Z)
@@ -30,11 +32,14 @@ A Chrome extension to manage and organize your liked items on Carousell.
 
 ## Usage
 
-1. Go to your Carousell likes page (e.g., `carousell.sg/likes/`)
+1. Click the extension icon in your toolbar (from any page)
 
-2. Click the extension icon in your toolbar
+2. Click **Scan Liked Items** - you'll be auto-redirected to your likes page if needed
 
-3. Click **Scan Liked Items**
+3. If you have many liked items, click **Load All** to automatically load all items:
+   - The extension clicks "Load more" at random intervals (1.5-4 seconds)
+   - This avoids detection as a bot
+   - Wait for it to finish, then click **Scan** again
 
 4. Your items will be displayed:
    - **Sold/Reserved items** appear at the top with unlike buttons

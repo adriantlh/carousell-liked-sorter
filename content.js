@@ -72,6 +72,60 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         }
     }
 
+    if (request.action === "checkPage") {
+        const isLikesPage = window.location.href.includes('/likes');
+        sendResponse({ isLikesPage, currentUrl: window.location.href });
+    }
+
+    if (request.action === "goToLikes") {
+        window.location.href = 'https://www.carousell.sg/likes/';
+        sendResponse({ status: "success" });
+    }
+
+    if (request.action === "loadMore") {
+        let loadMoreClicks = 0;
+        let noButtonCount = 0;
+        const maxNoButtonAttempts = 3;
+
+        function clickLoadMore() {
+            // Find the "Load more" button
+            const loadMoreBtn = Array.from(document.querySelectorAll('button')).find(btn =>
+                btn.textContent.trim().toLowerCase() === 'load more'
+            );
+
+            if (loadMoreBtn) {
+                loadMoreBtn.click();
+                loadMoreClicks++;
+                noButtonCount = 0;
+                console.log(`Clicked "Load more" (${loadMoreClicks} times)`);
+
+                // Random delay between 1.5 to 4 seconds to avoid detection
+                const delay = 1500 + Math.random() * 2500;
+                setTimeout(clickLoadMore, delay);
+            } else {
+                noButtonCount++;
+                console.log(`"Load more" button not found (attempt ${noButtonCount}/${maxNoButtonAttempts})`);
+
+                if (noButtonCount < maxNoButtonAttempts) {
+                    // Try again after a short delay (button might be loading)
+                    setTimeout(clickLoadMore, 1000);
+                } else {
+                    // Done loading
+                    console.log(`Finished loading. Clicked "Load more" ${loadMoreClicks} times.`);
+                    chrome.runtime.sendMessage({
+                        action: "loadMoreComplete",
+                        clicks: loadMoreClicks
+                    });
+                }
+            }
+        }
+
+        // Start clicking with initial random delay
+        const initialDelay = 500 + Math.random() * 1000;
+        setTimeout(clickLoadMore, initialDelay);
+        sendResponse({ status: "started" });
+    }
+
     if (request.action === "unlikeItem") {
         const { listingId } = request;
         console.log(`Attempting to unlike item: ${listingId}`);
