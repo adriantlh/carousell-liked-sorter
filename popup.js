@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const scanButton = document.getElementById('scanButton');
     const exportButton = document.getElementById('exportButton');
     const sortSelect = document.getElementById('sortSelect');
+    const groupByCategory = document.getElementById('groupByCategory');
     const statusMessage = document.getElementById('statusMessage');
     const lastScanEl = document.getElementById('lastScan');
     const unavailableSection = document.getElementById('unavailableSection');
@@ -75,6 +76,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Sort change
     sortSelect.addEventListener('change', function() {
+        if (allItems.length > 0) {
+            displayAllItems();
+        }
+    });
+
+    // Group by category change
+    groupByCategory.addEventListener('change', function() {
         if (allItems.length > 0) {
             displayAllItems();
         }
@@ -247,31 +255,69 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayAvailableItems(items) {
         resultsDiv.innerHTML = '';
 
-        const ul = document.createElement('ul');
-        ul.className = 'available-list';
+        if (groupByCategory.checked) {
+            // Group by inferred category
+            const categorizedItems = Categories.categorizeItems(items);
+            const byCategory = Categories.getItemsByCategory(items);
 
-        items.forEach(item => {
-            const li = document.createElement('li');
-            li.className = 'item';
+            for (const category in byCategory) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category-group';
 
-            const content = `
-                <span class="item-name">${escapeHtml(truncate(item.name, 50))}</span>
-                <span class="item-meta">
-                    <span class="item-condition">${escapeHtml(item.condition)}</span>
-                    <span class="item-price">${escapeHtml(item.price)}</span>
-                </span>
-            `;
+                const categoryHeader = document.createElement('h3');
+                categoryHeader.className = 'category-title';
+                categoryHeader.textContent = `${category} (${byCategory[category].length})`;
+                categoryDiv.appendChild(categoryHeader);
 
-            if (item.link) {
-                li.innerHTML = `<a href="${escapeHtml(item.link)}" target="_blank" class="item-link">${content}</a>`;
-            } else {
-                li.innerHTML = content;
+                const ul = document.createElement('ul');
+                ul.className = 'available-list';
+
+                // Sort items within category
+                const sortedItems = sortItems(byCategory[category], sortSelect.value);
+
+                sortedItems.forEach(item => {
+                    ul.appendChild(createItemElement(item));
+                });
+
+                categoryDiv.appendChild(ul);
+                resultsDiv.appendChild(categoryDiv);
             }
+        } else {
+            // Flat list
+            const ul = document.createElement('ul');
+            ul.className = 'available-list';
 
-            ul.appendChild(li);
-        });
+            items.forEach(item => {
+                ul.appendChild(createItemElement(item));
+            });
 
-        resultsDiv.appendChild(ul);
+            resultsDiv.appendChild(ul);
+        }
+    }
+
+    function createItemElement(item) {
+        const li = document.createElement('li');
+        li.className = 'item';
+
+        const category = Categories.inferCategory(item.name);
+        const categoryBadge = groupByCategory.checked ? '' : `<span class="item-category">${escapeHtml(category)}</span>`;
+
+        const content = `
+            <span class="item-name">${escapeHtml(truncate(item.name, 50))}</span>
+            <span class="item-meta">
+                ${categoryBadge}
+                <span class="item-condition">${escapeHtml(item.condition)}</span>
+                <span class="item-price">${escapeHtml(item.price)}</span>
+            </span>
+        `;
+
+        if (item.link) {
+            li.innerHTML = `<a href="${escapeHtml(item.link)}" target="_blank" class="item-link">${content}</a>`;
+        } else {
+            li.innerHTML = content;
+        }
+
+        return li;
     }
 
     function unlikeItem(listingId, callback) {
@@ -317,11 +363,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function exportToCSV() {
         if (allItems.length === 0) return;
 
-        const headers = ['Name', 'Price', 'Condition', 'Status', 'Link'];
+        const headers = ['Name', 'Price', 'Condition', 'Category', 'Status', 'Link'];
         const rows = allItems.map(item => [
             `"${item.name.replace(/"/g, '""')}"`,
             `"${item.price}"`,
             `"${item.condition}"`,
+            `"${Categories.inferCategory(item.name)}"`,
             `"${item.status}"`,
             `"${item.link || ''}"`
         ]);
