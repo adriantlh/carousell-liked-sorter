@@ -315,3 +315,51 @@ button:disabled {
 ::-webkit-scrollbar-thumb:hover {
     background: #aaa;
 }
+
+/* Notification popup */
+.notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 2px solid #28a745;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+    text-align: center;
+    max-width: 90%;
+}
+
+.notification p {
+    margin: 0 0 15px 0;
+    font-size: 0.95em;
+    color: #333;
+}
+
+.notification-close {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.notification-close:hover {
+    background: #218838;
+}
+
+/* Overlay behind notification */
+.notification::before {
+    content: '';
+    position: fixed;
+    top: -100vh;
+    left: -100vw;
+    width: 300vw;
+    height: 300vh;
+    background: rgba(0,0,0,0.4);
+    z-index: -1;
+}

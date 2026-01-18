@@ -94,8 +94,35 @@ document.addEventListener('DOMContentLoaded', function() {
             loadAllButton.textContent = 'Load All';
             statusMessage.textContent = `Finished loading (${request.clicks} clicks). Click "Scan" to refresh the list.`;
             statusMessage.style.color = 'green';
+
+            // Show a notification popup
+            showNotification(`All items loaded! (${request.clicks} "Load more" clicks). Click "Scan" to see your items.`);
         }
     });
+
+    // Show notification popup
+    function showNotification(message) {
+        // Remove existing notification if any
+        const existing = document.querySelector('.notification');
+        if (existing) existing.remove();
+
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerHTML = `
+            <p>${message}</p>
+            <button class="notification-close">OK</button>
+        `;
+        document.body.appendChild(notification);
+
+        notification.querySelector('.notification-close').addEventListener('click', function() {
+            notification.remove();
+        });
+
+        // Auto-remove after 10 seconds
+        setTimeout(() => {
+            if (notification.parentNode) notification.remove();
+        }, 10000);
+    }
 
     // Ensure we're on the likes page, redirect if not
     function ensureOnLikesPage(callback) {
