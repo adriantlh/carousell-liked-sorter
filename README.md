@@ -39,7 +39,8 @@ A Chrome extension to manage and organize your liked items on Carousell.
 3. If you have many liked items, click **Load All** to automatically load all items:
    - The extension clicks "Load more" at random intervals (1.5-4 seconds)
    - This avoids detection as a bot
-   - Wait for it to finish, then click **Scan** again
+   - A popup notification will appear when all items are loaded
+   - Click **Scan** again to refresh the list
 
 4. Your items will be displayed:
    - **Sold/Reserved items** appear at the top with unlike buttons
