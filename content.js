@@ -145,14 +145,69 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                 return;
             }
 
+            // Check if item is currently liked before clicking
+            // Common indicators: aria-pressed, filled SVG, data attributes
+            const isLiked = checkIfLiked(likeButton);
+            console.log(`Item ${listingId} liked state before click: ${isLiked}`);
+
+            if (!isLiked) {
+                console.log(`Item ${listingId} appears to already be unliked, skipping`);
+                sendResponse({ status: "success", message: "Item already unliked" });
+                return;
+            }
+
             // Click the button to unlike
             likeButton.click();
-            console.log(`Unliked item: ${listingId}`);
+
+            // Verify the unlike worked after a short delay
+            setTimeout(() => {
+                const stillLiked = checkIfLiked(likeButton);
+                if (stillLiked) {
+                    console.warn(`Item ${listingId} may not have been unliked`);
+                } else {
+                    console.log(`Verified: item ${listingId} unliked successfully`);
+                }
+            }, 500);
+
             sendResponse({ status: "success", message: "Item unliked" });
         } catch (error) {
             console.error("Unlike error:", error);
             sendResponse({ status: "error", message: error.message });
         }
+    }
+
+    // Helper function to check if an item is currently liked
+    function checkIfLiked(button) {
+        // Check aria-pressed attribute
+        if (button.getAttribute('aria-pressed') === 'true') return true;
+        if (button.getAttribute('aria-pressed') === 'false') return false;
+
+        // Check data attributes
+        if (button.dataset.liked === 'true' || button.dataset.active === 'true') return true;
+        if (button.dataset.liked === 'false' || button.dataset.active === 'false') return false;
+
+        // Check for filled SVG (red/pink heart typically indicates liked)
+        const svg = button.querySelector('svg');
+        if (svg) {
+            const fill = svg.getAttribute('fill') || '';
+            const path = svg.querySelector('path');
+            const pathFill = path ? (path.getAttribute('fill') || '') : '';
+
+            // Filled hearts typically have a color fill, not 'none' or 'transparent'
+            if (fill && fill !== 'none' && fill !== 'transparent' && fill !== 'currentColor') {
+                return true;
+            }
+            if (pathFill && pathFill !== 'none' && pathFill !== 'transparent') {
+                return true;
+            }
+        }
+
+        // On a likes page, assume items are liked by default
+        if (window.location.href.includes('/likes')) {
+            return true;
+        }
+
+        return null; // Unknown state
     }
 
     return true;

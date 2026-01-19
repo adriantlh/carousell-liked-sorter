@@ -50,7 +50,7 @@ A Chrome extension to manage and organize your liked items on Carousell.
    - **Sort** by price or name
    - **Group by category** to organize items
    - **Export CSV** to download the list
-   - **Unlike** sold items individually or all at once
+   - **Unlike** sold items individually or all at once (page auto-refreshes after bulk unlike)
 
 ## Category Inference
 

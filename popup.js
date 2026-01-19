@@ -199,6 +199,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         unlikeAllButton.disabled = false;
                         unlikeAllButton.textContent = 'Unlike All';
                         displayAllItems();
+                        // Refresh the page so unliked items are removed from DOM
+                        chrome.tabs.reload(currentTabId);
                     }
                 });
             }, index * 300); // Stagger requests to avoid rate limiting
